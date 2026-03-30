@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Cartes élèves — Admin{% endblock %}
+{% block page_title %}<i class="fas fa-id-card-alt"></i> Gestion cartes élèves{% endblock %}
+{% block content %}
+<div class="stats-grid" style="margin-bottom:1.5rem">
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-id-card-alt"></i></div>
+        <div class="stat-info">
+            <div class="value">{{ eleves|length }}</div>
+            <div class="label">Cartes élèves</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-user-graduate"></i></div>
+        <div class="stat-info">
+            <div class="value">{{ eleves|selectattr('classe')|list|length }}</div>
+            <div class="label">Assignés classes</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h3 style="font-size:1rem;margin:0">Liste complète</h3>
+        <div style="display:flex;gap:1rem">
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Utilisateurs</a>
+            <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Nouvel élève</a>
+        </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:1.2rem">
+        {% for e in eleves %}
+        <div class="card" style="padding:1.5rem">
+            <div style="display:flex;align-items:flex-start;gap:1rem">
+                <div style="flex-shrink:0">
+                    <div class="avatar" style="width:70px;height:70px;font-size:.85rem">
+                        {% if e.user.photo %}<img src="/uploads/{{ e.user.photo }}" alt="">
+                        {% else %}{{ (e.user.first_name or 'E')[0] }}{% endif %}
+                    </div>
+                </div>
+                <div style="flex:1">
+                    <h4 style="font-size:1rem;margin-bottom:.2rem">{{ e.user.full_name() }}</h4>
+                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;font-size:.82rem">
+                        <span class="badge badge-info">{{ e.matricule }}</span>
+                        <span class="badge badge-warning">{{ e.numero_carte }}</span>
+                        <span class="badge badge-success">{{ e.classe.nom if e.classe else 'Sans classe' }}</span>
+                    </div>
+                    {% if e.date_inscription %}
+                    <div style="font-size:.78rem;color:var(--text-secondary);margin-top:.3rem">
+                        Inscrit le {{ e.date_inscription.strftime('%d/%m/%Y') }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div style="display:flex;flex-direction:column;gap:.4rem">
+                    <a href="{{ url_for('admin.edit_user', user_id=e.user_id) }}" class="btn btn-sm btn-secondary" title="Modifier"><i class="fas fa-edit"></i></a>
+                    <a href="{{ url_for('admin.download_carte', eleve_id=e.id) }}" class="btn btn-sm btn-primary"><i class="fas fa-download"></i></a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div style="grid-column:1 / -1;text-align:center;padding:4rem;background:var(--bg-secondary);border-radius:12px">
+            <i class="fas fa-id-card-alt" style="font-size:4rem;color:var(--text-secondary);margin-bottom:1rem"></i>
+            <h3 style="color:var(--text-secondary);margin-bottom:1rem">Aucune carte élève</h3>
+            <p style="color:var(--text-secondary);margin-bottom:2rem">Commencez par ajouter des élèves.</p>
+            <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Ajouter élève</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Cartes élèves — Scolarité{% endblock %}
+{% block page_title %}<i class="fas fa-id-card-alt"></i> Cartes d'identité élèves{% endblock %}
+{% block content %}
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <div>
+            <h3 style="font-size:1rem;margin:0">{{ eleves|length }} cartes générées</h3>
+            <div style="color:var(--text-secondary);font-size:.85rem">Service Scolarité — PGB</div>
+        </div>
+        <a href="{{ url_for('scolarite.eleves') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Retour</a>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:1rem">
+        {% for e in eleves %}
+        <div class="card" style="padding:1.5rem">
+            <div style="display:flex;align-items:flex-start;gap:1rem">
+                <div style="flex-shrink:0">
+                    <div class="avatar" style="width:64px;height:64px">
+                        {% if e.user.photo %}<img src="/uploads/{{ e.user.photo }}" alt="">
+                        {% else %}{{ (e.user.first_name or 'E')[0] }}{% endif %}
+                    </div>
+                </div>
+                <div style="flex:1">
+                    <h4 style="font-size:.95rem;margin-bottom:.3rem">{{ e.user.full_name() }}</h4>
+                    <div style="color:var(--text-secondary);font-size:.85rem;margin-bottom:.3rem">{{ e.matricule }}</div>
+                    <div style="font-size:.8rem;color:var(--success)"><i class="fas fa-school"></i> {{ e.classe.nom if e.classe else 'Sans classe' }}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:.5rem;align-items:flex-end">
+                    <a href="{{ url_for('scolarite.download_carte', eleve_id=e.id) }}" class="btn btn-sm btn-primary"><i class="fas fa-download"></i> PDF</a>
+                    <a href="{{ url_for('scolarite.eleves') }}#eleve-{{ e.id }}" class="btn btn-sm btn-secondary">Détails</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div style="grid-column:1 / -1;text-align:center;padding:3rem">
+            <i class="fas fa-id-card-alt" style="font-size:3rem;color:var(--text-secondary);margin-bottom:1rem"></i>
+            <h3 style="color:var(--text-secondary);margin-bottom:.5rem">Aucune carte générée</h3>
+            <p style="color:var(--text-secondary)">Inscrivez des élèves pour générer leurs cartes.</p>
+            <a href="{{ url_for('scolarite.add_eleve') }}" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Premier élève</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

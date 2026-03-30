@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Inscrire un élève — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-user-graduate"></i> Inscription d'un élève{% endblock %}
+{% block content %}
+<div style="max-width:800px">
+<div class="card">
+    <form method="POST">
+        <input type="hidden" name="photo_data" id="photo_data">
+
+        <div class="form-group">
+            <label class="form-label">Photo de l'élève</label>
+            <div class="photo-capture-area">
+                <img id="photoPreview" class="photo-preview" src="#" alt="">
+                <video id="video" autoplay style="display:none;width:100%;max-width:300px;border-radius:8px"></video>
+                <canvas id="canvas" style="display:none"></canvas>
+                <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:.5rem">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="startCamera()"><i class="fas fa-camera"></i> Caméra</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="captureBtn" onclick="capturePhoto()" style="display:none"><i class="fas fa-circle"></i> Prendre</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="stopBtn" onclick="stopCamera()" style="display:none"><i class="fas fa-stop"></i> Arrêter</button>
+                    <label class="btn btn-secondary btn-sm" style="cursor:pointer"><i class="fas fa-upload"></i> Importer <input type="file" accept="image/*" onchange="loadFile(this)" style="display:none"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Prénom *</label><input type="text" name="first_name" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Nom *</label><input type="text" name="last_name" class="form-control" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Nom d'utilisateur *</label><input type="text" name="username" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Email *</label><input type="email" name="email" class="form-control" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Classe</label>
+                <select name="classe_id" class="form-control">
+                    <option value="">-- Sélectionner --</option>
+                    {% for c in classes %}<option value="{{ c.id }}">{{ c.nom }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">Date de naissance</label><input type="date" name="date_naissance" class="form-control"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Lieu de naissance</label><input type="text" name="lieu_naissance" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Adresse</label><input type="text" name="adresse" class="form-control"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Nom du parent/tuteur</label><input type="text" name="nom_parent" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Tél. parent (WhatsApp) *</label><input type="tel" name="telephone_parent" class="form-control" placeholder="+221 77..." required></div>
+        </div>
+        <div class="form-group"><label class="form-label">Mot de passe (défaut: pgb1234)</label><input type="password" name="password" class="form-control" placeholder="pgb1234"></div>
+
+        <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:8px;padding:.8rem;margin-bottom:1rem;font-size:.82rem;color:var(--text-secondary)">
+            <i class="fas fa-info-circle" style="color:var(--accent-light)"></i> Une carte d'identité scolaire sera <strong style="color:var(--text-primary)">automatiquement générée</strong> après l'inscription.
+        </div>
+
+        <div style="display:flex;gap:.8rem">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Inscrire l'élève</button>
+            <a href="{{ url_for('scolarite.eleves') }}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+</div>
+<script>
+let stream = null;
+async function startCamera() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const v = document.getElementById('video'); v.srcObject = stream; v.style.display = 'block';
+        document.getElementById('captureBtn').style.display = 'inline-flex';
+        document.getElementById('stopBtn').style.display = 'inline-flex';
+    } catch(e) { alert('Caméra inaccessible: ' + e.message); }
+}
+function capturePhoto() {
+    const v = document.getElementById('video'), c = document.getElementById('canvas');
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d').drawImage(v,0,0);
+    const d = c.toDataURL('image/jpeg',0.8);
+    document.getElementById('photo_data').value = d;
+    const p = document.getElementById('photoPreview'); p.src = d; p.style.display = 'block';
+    stopCamera();
+}
+function stopCamera() {
+    if (stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; }
+    document.getElementById('video').style.display = 'none';
+    document.getElementById('captureBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display = 'none';
+}
+function loadFile(input) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('photo_data').value = e.target.result;
+        const p = document.getElementById('photoPreview'); p.src = e.target.result; p.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+</script>
+{% endblock %}

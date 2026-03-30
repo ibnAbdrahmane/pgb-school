@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Notes — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-pen-ruler"></i> Gestion des notes{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:1.5rem">
+    <form method="GET" style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end">
+        <div class="form-group" style="margin:0;min-width:200px">
+            <label class="form-label">Cours</label>
+            <select name="cours_id" class="form-control" onchange="this.form.submit()">
+                <option value="">-- Sélectionner un cours --</option>
+                {% for c in cours_list %}
+                <option value="{{ c.id }}" {% if selected_cours_id == c.id %}selected{% endif %}>{{ c.nom }} — {{ c.classe.nom if c.classe else 'N/A' }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin:0">
+            <label class="form-label">Trimestre</label>
+            <select name="trimestre" class="form-control" onchange="this.form.submit()">
+                {% for t in [1,2,3] %}
+                <option value="{{ t }}" {% if selected_trimestre == t %}selected{% endif %}>Trimestre {{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if eleves_notes %}
+<form method="POST" action="{{ url_for('prof.save_notes') }}">
+    <input type="hidden" name="cours_id" value="{{ selected_cours_id }}">
+    <input type="hidden" name="trimestre" value="{{ selected_trimestre }}">
+
+    <div class="card" style="margin-bottom:1rem">
+        <div class="form-group" style="max-width:200px;margin:0">
+            <label class="form-label">Type de note</label>
+            <select name="type_note" class="form-control">
+                <option value="devoir">Devoir</option>
+                <option value="examen">Examen</option>
+                <option value="tp">TP</option>
+                <option value="oral">Oral</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Élève</th>
+                    <th>Matricule</th>
+                    <th>Note /20</th>
+                    <th>Appréciation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in eleves_notes %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:.6rem">
+                            <div class="avatar" style="width:30px;height:30px;font-size:.72rem">
+                                {% if item.eleve.photo %}<img src="/uploads/{{ item.eleve.photo }}" alt="">
+                                {% else %}{{ (item.eleve.user.first_name or 'E')[0] }}{% endif %}
+                            </div>
+                            {{ item.eleve.user.full_name() }}
+                        </div>
+                    </td>
+                    <td><code style="font-size:.75rem">{{ item.eleve.matricule }}</code></td>
+                    <td>
+                        <input type="number" name="note_{{ item.eleve.id }}"
+                               class="form-control note-input"
+                               value="{{ item.note.valeur if item.note else '' }}"
+                               min="0" max="20" step="0.25"
+                               placeholder="—">
+                    </td>
+                    <td>
+                        {% if item.note and item.note.valeur is not none %}
+                        {% set n = item.note.valeur %}
+                        <span class="badge {% if n >= 14 %}badge-success{% elif n >= 10 %}badge-warning{% else %}badge-danger{% endif %}">
+                            {% if n >= 16 %}Excellent{% elif n >= 14 %}Très bien{% elif n >= 12 %}Bien{% elif n >= 10 %}Passable{% else %}Insuffisant{% endif %}
+                        </span>
+                        {% else %}<span style="color:var(--text-muted)">—</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:.8rem">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer les notes</button>
+    </div>
+</form>
+{% elif selected_cours_id %}
+<div class="alert alert-info"><i class="fas fa-info-circle"></i> Aucun élève dans cette classe.</div>
+{% else %}
+<div class="card" style="text-align:center;padding:3rem;color:var(--text-secondary)">
+    <i class="fas fa-pen-ruler" style="font-size:2rem;margin-bottom:1rem;opacity:.4"></i>
+    <p>Sélectionnez un cours pour saisir les notes.</p>
+</div>
+{% endif %}
+{% endblock %}

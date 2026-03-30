@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Classes — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-chalkboard"></i> Gestion des classes{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+    <div style="color:var(--text-secondary);font-size:.85rem">{{ classes|length }} classes</div>
+    <button class="btn btn-primary" onclick="document.getElementById('addClasseModal').classList.add('active')"><i class="fas fa-plus"></i> Nouvelle classe</button>
+</div>
+<div class="table-container">
+    <table>
+        <thead><tr><th>Nom</th><th>Niveau</th><th>Année</th><th>Élèves</th><th>Cours</th></tr></thead>
+        <tbody>
+            {% for c in classes %}
+            <tr>
+                <td><strong>{{ c.nom }}</strong></td>
+                <td>{{ c.niveau }}</td>
+                <td>{{ c.annee_scolaire }}</td>
+                <td><span class="badge badge-info">{{ c.eleves|length }}</span></td>
+                <td><span class="badge badge-success">{{ c.cours|length }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:2rem">Aucune classe</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal-overlay" id="addClasseModal">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-header">
+            <h3 class="modal-title">Nouvelle classe</h3>
+            <button class="modal-close" onclick="document.getElementById('addClasseModal').classList.remove('active')"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST" action="{{ url_for('admin.add_classe') }}">
+            <div class="form-group"><label class="form-label">Nom *</label><input type="text" name="nom" class="form-control" placeholder="3ème B" required></div>
+            <div class="form-group"><label class="form-label">Niveau</label><input type="text" name="niveau" class="form-control" placeholder="3ème"></div>
+            <div class="form-group"><label class="form-label">Année scolaire</label><input type="text" name="annee_scolaire" class="form-control" value="2024-2025"></div>
+            <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-save"></i> Créer</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

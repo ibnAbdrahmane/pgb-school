@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Professeurs — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-chalkboard-user"></i> Professeurs{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+    <div style="color:var(--text-secondary);font-size:.85rem">{{ profs|length }} professeurs</div>
+    <a href="{{ url_for('scolarite.add_prof') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Ajouter</a>
+</div>
+<div class="table-container">
+    <table>
+        <thead><tr><th>Professeur</th><th>Matricule</th><th>Spécialité</th><th>Téléphone</th><th>Cours</th></tr></thead>
+        <tbody>
+            {% for p in profs %}
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:.7rem">
+                        <div class="avatar" style="width:32px;height:32px;font-size:.75rem">
+                            {% if p.user.photo %}<img src="/uploads/{{ p.user.photo }}" alt="">
+                            {% else %}{{ (p.user.first_name or 'P')[0] }}{% endif %}
+                        </div>
+                        <div>
+                            <div style="font-weight:600;font-size:.85rem">{{ p.user.full_name() }}</div>
+                            <div style="font-size:.72rem;color:var(--text-secondary)">@{{ p.user.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><code style="font-size:.75rem">{{ p.matricule }}</code></td>
+                <td>{{ p.specialite or '—' }}</td>
+                <td style="font-size:.82rem">{{ p.telephone or '—' }}</td>
+                <td><span class="badge badge-info">{{ p.cours|length }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:2rem">Aucun professeur</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

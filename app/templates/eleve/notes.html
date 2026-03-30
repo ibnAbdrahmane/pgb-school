@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Mes Notes — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-star"></i> Mes notes{% endblock %}
+{% block content %}
+<div class="tab-nav" id="trimTabs">
+    {% for t in [1,2,3] %}
+    <button class="tab-btn {% if loop.first %}active{% endif %}" onclick="showTrimestre({{ t }}, this)">Trimestre {{ t }}</button>
+    {% endfor %}
+</div>
+
+{% for t in [1,2,3] %}
+<div id="trim{{ t }}" style="{% if not loop.first %}display:none{% endif %}">
+    {% if t in trimestres %}
+    {% set data = trimestres[t] %}
+    <div class="card" style="margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div>
+            <div style="font-size:.82rem;color:var(--text-secondary)">Moyenne générale</div>
+            <div style="font-size:2rem;font-weight:800;{% if data.moyenne and data.moyenne >= 14 %}color:var(--success){% elif data.moyenne and data.moyenne >= 10 %}color:var(--warning){% else %}color:var(--danger){% endif %}">
+                {{ data.moyenne or '—' }}<span style="font-size:1rem;opacity:.6">/20</span>
+            </div>
+        </div>
+        {% if data.moyenne %}
+        <div>
+            <span class="badge {% if data.moyenne >= 14 %}badge-success{% elif data.moyenne >= 10 %}badge-warning{% else %}badge-danger{% endif %}" style="font-size:.9rem;padding:.4rem 1rem">
+                {% if data.moyenne >= 16 %}Très Bien{% elif data.moyenne >= 14 %}Bien{% elif data.moyenne >= 12 %}Assez Bien{% elif data.moyenne >= 10 %}Passable{% else %}Insuffisant{% endif %}
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Matière</th><th>Coefficient</th><th>Note</th><th>Appréciation</th></tr></thead>
+            <tbody>
+                {% for note in data.notes %}
+                <tr>
+                    <td><strong>{{ note.cours.nom }}</strong></td>
+                    <td>{{ note.cours.coefficient }}</td>
+                    <td>
+                        {% if note.valeur is not none %}
+                        <span style="font-weight:700;font-size:1rem;{% if note.valeur >= 14 %}color:var(--success){% elif note.valeur >= 10 %}color:var(--warning){% else %}color:var(--danger){% endif %}">
+                            {{ note.valeur }}/20
+                        </span>
+                        {% else %}<span style="color:var(--text-muted)">N/A</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if note.valeur is not none %}
+                        <span class="badge {% if note.valeur >= 14 %}badge-success{% elif note.valeur >= 10 %}badge-warning{% else %}badge-danger{% endif %}">
+                            {% if note.valeur >= 16 %}Excellent{% elif note.valeur >= 14 %}Très bien{% elif note.valeur >= 12 %}Bien{% elif note.valeur >= 10 %}Passable{% else %}Insuffisant{% endif %}
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card" style="text-align:center;padding:3rem;color:var(--text-secondary)">
+        <i class="fas fa-hourglass-half" style="font-size:2rem;margin-bottom:1rem;opacity:.4"></i>
+        <p>Notes du trimestre {{ t }} non disponibles.</p>
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+
+<script>
+function showTrimestre(t, btn) {
+    [1,2,3].forEach(i => document.getElementById('trim'+i).style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('trim'+t).style.display = 'block';
+    btn.classList.add('active');
+}
+</script>
+{% endblock %}

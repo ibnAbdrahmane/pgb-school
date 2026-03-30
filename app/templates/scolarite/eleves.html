@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Élèves — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-user-graduate"></i> Liste des élèves{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+    <form method="GET" style="display:flex;gap:.5rem">
+        <select name="classe_id" class="form-control" onchange="this.form.submit()" style="min-width:160px">
+            <option value="">Toutes les classes</option>
+            {% for c in classes %}<option value="{{ c.id }}" {% if selected_classe == c.id %}selected{% endif %}>{{ c.nom }}</option>{% endfor %}
+        </select>
+    </form>
+    <a href="{{ url_for('scolarite.add_eleve') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Inscrire</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead><tr><th>Élève</th><th>Matricule</th><th>Classe</th><th>Parent</th><th>Tél. Parent</th><th>Carte</th></tr></thead>
+        <tbody>
+            {% for e in eleves %}
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:.7rem">
+                        <div class="avatar" style="width:32px;height:32px;font-size:.75rem">
+                            {% if e.photo %}<img src="/uploads/{{ e.photo }}" alt="">
+                            {% else %}{{ (e.user.first_name or 'E')[0] }}{% endif %}
+                        </div>
+                        <div>
+                            <div style="font-weight:600;font-size:.85rem">{{ e.user.full_name() }}</div>
+                            <div style="font-size:.72rem;color:var(--text-secondary)">@{{ e.user.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><code style="font-size:.75rem">{{ e.matricule }}</code></td>
+                <td>{{ e.classe.nom if e.classe else '—' }}</td>
+                <td style="font-size:.82rem">{{ e.nom_parent or '—' }}</td>
+                <td style="font-size:.82rem">{{ e.telephone_parent or '—' }}</td>
+                <td><span class="badge badge-success"><i class="fas fa-check"></i> Générée</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:2rem">Aucun élève</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

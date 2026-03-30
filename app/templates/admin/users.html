@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Utilisateurs — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-users"></i> Gestion des utilisateurs{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+    <div style="color:var(--text-secondary);font-size:.85rem">{{ users|length }} utilisateurs</div>
+    <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Ajouter</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Utilisateur</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:.7rem">
+                        <div class="avatar" style="width:34px;height:34px;font-size:.8rem">
+                            {% if user.photo %}<img src="/uploads/{{ user.photo }}" alt="">
+                            {% else %}{{ (user.first_name or 'U')[0] }}{% endif %}
+                        </div>
+                        <div>
+                            <div style="font-weight:600;font-size:.85rem">{{ user.full_name() }}</div>
+                            <div style="font-size:.72rem;color:var(--text-secondary)">@{{ user.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="color:var(--text-secondary);font-size:.82rem">{{ user.email }}</td>
+                <td><span class="badge {% if user.role=='admin' %}badge-info{% elif user.role=='prof' %}badge-success{% elif user.role=='eleve' %}badge-warning{% else %}badge-info{% endif %}">{{ user.role }}</span></td>
+                <td><span class="badge {% if user.is_active %}badge-success{% else %}badge-danger{% endif %}">{% if user.is_active %}Actif{% else %}Inactif{% endif %}</span></td>
+                <td>
+                    <div style="display:flex;gap:.4rem">
+                        <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-pen"></i></a>
+                        {% if user.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" onsubmit="return confirm('Supprimer cet utilisateur ?')">
+                            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:2rem">Aucun utilisateur</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

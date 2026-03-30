@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}École PGB{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0d1b2a;
+            --bg-secondary: #1b2838;
+            --bg-card: #1e2d40;
+            --accent: #2563eb;
+            --accent-light: #3b82f6;
+            --accent-glow: rgba(37,99,235,0.3);
+            --text-primary: #e8f0fe;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #2d3f55;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #06b6d4;
+            --sidebar-width: 260px;
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh;
+            z-index: 100; transition: transform .3s;
+        }
+        .sidebar-logo {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .8rem;
+        }
+        .sidebar-logo .logo-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; font-weight: 800; color: white;
+        }
+        .sidebar-logo .logo-text { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); }
+        .sidebar-logo .logo-sub { font-size: .7rem; color: var(--text-secondary); }
+
+        .sidebar-user {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .8rem;
+        }
+        .avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: white; font-size: .9rem;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info .name { font-size: .85rem; font-weight: 600; }
+        .user-info .role-badge {
+            font-size: .65rem; padding: .15rem .5rem;
+            border-radius: 20px; font-weight: 600; text-transform: uppercase;
+            background: var(--accent-glow); color: var(--accent-light);
+        }
+        .role-badge.admin { background: rgba(139,92,246,.2); color: #a78bfa; }
+        .role-badge.prof { background: rgba(16,185,129,.2); color: #34d399; }
+        .role-badge.eleve { background: rgba(245,158,11,.2); color: #fcd34d; }
+        .role-badge.scolarite { background: rgba(6,182,212,.2); color: #67e8f9; }
+
+        .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-section { padding: .3rem 1rem .1rem; font-size: .65rem; font-weight: 700;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-top: .5rem; }
+        .nav-item {
+            display: flex; align-items: center; gap: .8rem;
+            padding: .65rem 1.5rem; color: var(--text-secondary);
+            text-decoration: none; font-size: .85rem; font-weight: 500;
+            transition: all .2s; position: relative; border-radius: 0;
+        }
+        .nav-item:hover, .nav-item.active {
+            color: var(--text-primary);
+            background: linear-gradient(90deg, var(--accent-glow), transparent);
+        }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 3px; background: var(--accent); border-radius: 0 3px 3px 0;
+        }
+        .nav-item i { width: 18px; text-align: center; }
+
+        .sidebar-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); }
+
+        /* Main content */
+        .main-content { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .topbar {
+            background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-title { font-size: 1.1rem; font-weight: 700; }
+        .topbar-actions { display: flex; gap: .8rem; align-items: center; }
+
+        .page-content { padding: 2rem; flex: 1; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 1.5rem;
+            transition: box-shadow .2s;
+        }
+        .card:hover { box-shadow: 0 4px 24px rgba(0,0,0,.3); }
+        .card-title { font-size: .85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: .5rem; }
+        .card-value { font-size: 2rem; font-weight: 800; }
+        .card-icon { font-size: 1.5rem; color: var(--accent-light); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 1.2rem 1.5rem;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+        }
+        .stat-icon.blue { background: rgba(37,99,235,.15); color: var(--accent-light); }
+        .stat-icon.green { background: rgba(16,185,129,.15); color: var(--success); }
+        .stat-icon.yellow { background: rgba(245,158,11,.15); color: var(--warning); }
+        .stat-icon.purple { background: rgba(139,92,246,.15); color: #a78bfa; }
+        .stat-icon.cyan { background: rgba(6,182,212,.15); color: var(--info); }
+        .stat-info .value { font-size: 1.6rem; font-weight: 800; }
+        .stat-info .label { font-size: .78rem; color: var(--text-secondary); }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .55rem 1.2rem; border-radius: 8px; font-size: .85rem;
+            font-weight: 600; cursor: pointer; transition: all .2s;
+            border: none; text-decoration: none;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-light); box-shadow: 0 4px 12px var(--accent-glow); }
+        .btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent-light); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-sm { padding: .35rem .8rem; font-size: .78rem; }
+
+        /* Forms */
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: .82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: .4rem; }
+        .form-control {
+            width: 100%; padding: .6rem .9rem;
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text-primary); font-size: .85rem;
+            transition: border-color .2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .form-control option { background: var(--bg-secondary); }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1rem; }
+
+        /* Tables */
+        .table-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--bg-secondary); }
+        th { padding: .8rem 1rem; text-align: left; font-size: .78rem; font-weight: 700;
+            color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+        td { padding: .75rem 1rem; font-size: .85rem; border-bottom: 1px solid rgba(45,63,85,.5); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(37,99,235,.04); }
+
+        /* Alerts */
+        .alert { padding: .75rem 1rem; border-radius: 8px; font-size: .85rem; margin-bottom: 1rem; display: flex; align-items: center; gap: .6rem; }
+        .alert-success { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); color: #34d399; }
+        .alert-danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: #f87171; }
+        .alert-info { background: rgba(6,182,212,.1); border: 1px solid rgba(6,182,212,.3); color: #67e8f9; }
+        .alert-warning { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.3); color: #fcd34d; }
+
+        /* Badges */
+        .badge { display: inline-flex; padding: .2rem .55rem; border-radius: 20px; font-size: .7rem; font-weight: 600; }
+        .badge-success { background: rgba(16,185,129,.15); color: var(--success); }
+        .badge-danger { background: rgba(239,68,68,.15); color: #f87171; }
+        .badge-info { background: rgba(6,182,212,.15); color: var(--info); }
+        .badge-warning { background: rgba(245,158,11,.15); color: var(--warning); }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-title { font-size: 1.1rem; font-weight: 700; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+        }
+
+        /* Photo capture */
+        .photo-capture-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 1rem; text-align: center; }
+        .photo-preview { width: 120px; height: 150px; border-radius: 8px; object-fit: cover; display: none; margin: .5rem auto; }
+        #video { width: 100%; max-width: 300px; border-radius: 8px; display: none; }
+        #canvas { display: none; }
+
+        /* Note input */
+        .note-input { width: 70px; text-align: center; }
+
+        /* Pill tabs */
+        .tab-nav { display: flex; gap: .5rem; margin-bottom: 1.5rem; background: var(--bg-secondary); padding: .4rem; border-radius: 10px; width: fit-content; }
+        .tab-btn { padding: .45rem 1rem; border-radius: 7px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-size: .82rem; font-weight: 600; transition: all .2s; }
+        .tab-btn.active { background: var(--accent); color: white; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">P</div>
+            <div>
+                <div class="logo-text">École PGB</div>
+                <div class="logo-sub">Gestion Scolaire</div>
+            </div>
+        </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="sidebar-user">
+            <div class="avatar">
+                {% if current_user.photo %}
+                <img src="/uploads/{{ current_user.photo }}" alt="">
+                {% else %}
+                {{ (current_user.first_name or 'U')[0].upper() }}
+                {% endif %}
+            </div>
+            <div class="user-info">
+                <div class="name">{{ current_user.full_name() }}</div>
+                <span class="role-badge {{ current_user.role }}">{{ current_user.role }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            {% if current_user.role == 'admin' %}
+            <div class="nav-section">Administration</div>
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"><i class="fas fa-gauge"></i> Tableau de bord</a>
+            <a href="{{ url_for('admin.users') }}" class="nav-item {% if 'user' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-users"></i> Utilisateurs</a>
+            <a href="{{ url_for('admin.classes') }}" class="nav-item {% if 'classe' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-chalkboard"></i> Classes</a>
+            <a href="{{ url_for('admin.cours') }}" class="nav-item {% if 'cours' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-book"></i> Cours</a>
+            {% endif %}
+
+            {% if current_user.role == 'prof' %}
+            <div class="nav-section">Espace Professeur</div>
+            <a href="{{ url_for('prof.dashboard') }}" class="nav-item {% if request.endpoint == 'prof.dashboard' %}active{% endif %}"><i class="fas fa-gauge"></i> Tableau de bord</a>
+            <a href="{{ url_for('prof.notes') }}" class="nav-item {% if 'note' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-pen-ruler"></i> Notes</a>
+            <a href="{{ url_for('prof.presences') }}" class="nav-item {% if 'presence' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-clipboard-check"></i> Présences</a>
+            {% endif %}
+
+            {% if current_user.role == 'eleve' %}
+            <div class="nav-section">Espace Élève</div>
+            <a href="{{ url_for('eleve.dashboard') }}" class="nav-item {% if request.endpoint == 'eleve.dashboard' %}active{% endif %}"><i class="fas fa-gauge"></i> Tableau de bord</a>
+            <a href="{{ url_for('eleve.notes') }}" class="nav-item {% if 'note' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-star"></i> Mes Notes</a>
+            <a href="{{ url_for('eleve.presences') }}" class="nav-item {% if 'presence' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-calendar-check"></i> Présences</a>
+            <a href="{{ url_for('eleve.bulletins') }}" class="nav-item {% if 'bulletin' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-file-pdf"></i> Bulletins</a>
+            <a href="{{ url_for('eleve.carte') }}" class="nav-item {% if 'carte' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-id-card"></i> Ma Carte</a>
+            {% endif %}
+
+            {% if current_user.role == 'scolarite' %}
+            <div class="nav-section">Service Scolarité</div>
+            <a href="{{ url_for('scolarite.dashboard') }}" class="nav-item {% if request.endpoint == 'scolarite.dashboard' %}active{% endif %}"><i class="fas fa-gauge"></i> Tableau de bord</a>
+            <a href="{{ url_for('scolarite.eleves') }}" class="nav-item {% if 'eleve' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-user-graduate"></i> Élèves</a>
+            <a href="{{ url_for('scolarite.profs') }}" class="nav-item {% if 'prof' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-chalkboard-user"></i> Professeurs</a>
+            <a href="{{ url_for('scolarite.cours') }}" class="nav-item {% if 'cours' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-book-open"></i> Cours</a>
+            <a href="{{ url_for('scolarite.notes') }}" class="nav-item {% if 'note' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-chart-bar"></i> Notes</a>
+            {% endif %}
+
+            <div class="nav-section">Général</div>
+            <a href="{{ url_for('chat.index') }}" class="nav-item {% if 'chat' in (request.endpoint or '') %}active{% endif %}"><i class="fas fa-comments"></i> Chat en direct</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary" style="width:100%; justify-content:center;">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+        {% endif %}
+    </aside>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+            <div class="topbar-actions">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('chat.index') }}" class="btn btn-secondary btn-sm"><i class="fas fa-comments"></i> Chat</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="page-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }}"><i class="fas fa-circle-info"></i> {{ msg }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

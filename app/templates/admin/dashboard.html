@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Admin — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-gauge"></i> Tableau de bord{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div>
+        <div class="stat-info"><div class="value">{{ stats.eleves }}</div><div class="label">Élèves</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-chalkboard-user"></i></div>
+        <div class="stat-info"><div class="value">{{ stats.profs }}</div><div class="label">Professeurs</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon yellow"><i class="fas fa-chalkboard"></i></div>
+        <div class="stat-info"><div class="value">{{ stats.classes }}</div><div class="label">Classes</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-book"></i></div>
+        <div class="stat-info"><div class="value">{{ stats.cours }}</div><div class="label">Cours</div></div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <h3 style="font-size:.95rem">Derniers utilisateurs</h3>
+            <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Ajouter</a>
+        </div>
+        {% for user in recent_users %}
+        <div style="display:flex;align-items:center;gap:.8rem;padding:.5rem 0;border-bottom:1px solid var(--border)">
+            <div class="avatar" style="width:32px;height:32px;font-size:.75rem">
+                {% if user.photo %}<img src="/uploads/{{ user.photo }}" alt="">
+                {% else %}{{ (user.first_name or 'U')[0] }}{% endif %}
+            </div>
+            <div style="flex:1">
+                <div style="font-size:.85rem;font-weight:600">{{ user.full_name() }}</div>
+                <div style="font-size:.72rem;color:var(--text-secondary)">{{ user.username }}</div>
+            </div>
+            <span class="badge {% if user.role=='admin' %}badge-info{% elif user.role=='prof' %}badge-success{% elif user.role=='eleve' %}badge-warning{% else %}badge-info{% endif %}">{{ user.role }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card">
+        <h3 style="font-size:.95rem;margin-bottom:1rem">Accès rapides</h3>
+        <div style="display:flex;flex-direction:column;gap:.7rem">
+            <a href="{{ url_for('admin.add_user') }}" class="btn btn-secondary"><i class="fas fa-user-plus"></i> Ajouter un utilisateur</a>
+            <a href="{{ url_for('admin.classes') }}" class="btn btn-secondary"><i class="fas fa-chalkboard"></i> Gérer les classes</a>
+            <a href="{{ url_for('admin.cours') }}" class="btn btn-secondary"><i class="fas fa-book"></i> Gérer les cours</a>
+            <a href="{{ url_for('chat.index') }}" class="btn btn-secondary"><i class="fas fa-comments"></i> Chat en direct</a>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="grid-column:1 / -1;margin-top:1.5rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h3 style="font-size:.95rem"><i class="fas fa-user-graduate"></i> Élèves récents</h3>
+        <a href="{{ url_for('admin.users') }}" class="btn btn-primary btn-sm"><i class="fas fa-list"></i> Voir tous</a>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.5rem">
+        {% for e in recent_eleves %}
+        <div style="display:flex;align-items:center;gap:.8rem;padding:.6rem 0;border-bottom:1px solid var(--border)">
+            <div class="avatar" style="width:32px;height:32px;font-size:.75rem;background:#f59e0b33;color:#fcd34d">
+                {% if e.user.photo %}<img src="/uploads/{{ e.user.photo }}" alt="">
+                {% else %}{{ (e.user.first_name or 'E')[0] }}{% endif %}
+            </div>
+            <div style="flex:1">
+                <div style="font-size:.85rem;font-weight:600">{{ e.user.full_name() }}</div>
+                <div style="font-size:.72rem;color:var(--text-secondary)">
+                    {{ e.matricule }} — {{ e.classe.nom if e.classe else 'Sans classe' }}
+                </div>
+            </div>
+            <a href="{{ url_for('admin.edit_user', user_id=e.user_id) }}" class="btn btn-sm btn-secondary" title="Modifier"><i class="fas fa-edit"></i></a>
+        </div>
+        {% else %}
+        <p style="color:var(--text-secondary);text-align:center;padding:2rem;font-style:italic">Aucun élève récent.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

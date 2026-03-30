@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Cours — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-book-open"></i> Liste des cours{% endblock %}
+{% block content %}
+<div class="table-container">
+    <table>
+        <thead><tr><th>Matière</th><th>Code</th><th>Coeff.</th><th>Classe</th><th>Professeur</th></tr></thead>
+        <tbody>
+            {% for c in cours %}
+            <tr>
+                <td><strong>{{ c.nom }}</strong></td>
+                <td><code style="font-size:.75rem;background:var(--bg-secondary);padding:.2rem .5rem;border-radius:4px">{{ c.code or '—' }}</code></td>
+                <td>{{ c.coefficient }}</td>
+                <td>{{ c.classe.nom if c.classe else '—' }}</td>
+                <td>{{ c.prof.user.full_name() if c.prof else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:2rem">Aucun cours enregistré</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

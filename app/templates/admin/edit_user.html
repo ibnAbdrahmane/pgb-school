@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Modifier {{ user.full_name() }} — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-user-pen"></i> Modifier l'utilisateur{% endblock %}
+{% block content %}
+<div style="max-width:700px">
+<div class="card">
+    <form method="POST">
+        <input type="hidden" name="photo_data" id="photo_data">
+        <div style="display:flex;align-items:center;gap:1.2rem;margin-bottom:1.5rem">
+            <div class="avatar" style="width:60px;height:60px;font-size:1.5rem" id="avatarDisplay">
+                {% if user.photo %}<img src="/uploads/{{ user.photo }}" alt="" id="avatarImg">
+                {% else %}{{ (user.first_name or 'U')[0] }}{% endif %}
+            </div>
+            <div>
+                <h3 style="font-size:1rem">{{ user.full_name() }}</h3>
+                <span class="badge badge-info">{{ user.role }}</span>
+            </div>
+        </div>
+
+        <!-- Photo capture -->
+        <div class="form-group">
+            <label class="form-label">Changer la photo</label>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="startCamera()"><i class="fas fa-camera"></i> Caméra</button>
+                <button type="button" class="btn btn-primary btn-sm" id="captureBtn" onclick="capturePhoto()" style="display:none"><i class="fas fa-circle"></i> Capturer</button>
+                <label class="btn btn-secondary btn-sm" style="cursor:pointer"><i class="fas fa-upload"></i> Charger <input type="file" accept="image/*" onchange="loadFile(this)" style="display:none"></label>
+            </div>
+            <video id="video" style="display:none;width:100%;max-width:300px;border-radius:8px;margin-top:.5rem" autoplay></video>
+            <canvas id="canvas" style="display:none"></canvas>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Prénom</label>
+                <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nom</label>
+                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" value="{{ user.email }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Nouveau mot de passe <span style="color:var(--text-muted)">(laisser vide pour ne pas changer)</span></label>
+            <input type="password" name="password" class="form-control">
+        </div>
+
+        {% if user.role == 'prof' and user.prof_profile %}
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Spécialité</label>
+                <input type="text" name="specialite" class="form-control" value="{{ user.prof_profile.specialite or '' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Téléphone</label>
+                <input type="tel" name="telephone" class="form-control" value="{{ user.prof_profile.telephone or '' }}">
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.role == 'eleve' and user.eleve_profile %}
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Classe</label>
+                <select name="classe_id" class="form-control">
+                    <option value="">-- Sélectionner --</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}" {% if user.eleve_profile.classe_id == c.id %}selected{% endif %}>{{ c.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tél. parent</label>
+                <input type="tel" name="telephone_parent" class="form-control" value="{{ user.eleve_profile.telephone_parent or '' }}">
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="display:flex;gap:.8rem;margin-top:1.5rem">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Sauvegarder</button>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+</div>
+<script>
+let stream = null;
+async function startCamera() {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const v = document.getElementById('video'); v.srcObject = stream; v.style.display = 'block';
+    document.getElementById('captureBtn').style.display = 'inline-flex';
+}
+function capturePhoto() {
+    const v = document.getElementById('video'), c = document.getElementById('canvas');
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d').drawImage(v, 0, 0);
+    const d = c.toDataURL('image/jpeg', 0.8);
+    document.getElementById('photo_data').value = d;
+    const img = document.querySelector('#avatarDisplay img') || document.createElement('img');
+    img.id = 'avatarImg'; img.src = d; img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+    document.getElementById('avatarDisplay').innerHTML = ''; document.getElementById('avatarDisplay').appendChild(img);
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    v.style.display = 'none'; document.getElementById('captureBtn').style.display = 'none';
+}
+function loadFile(input) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('photo_data').value = e.target.result;
+        const img = document.createElement('img');
+        img.src = e.target.result; img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+        document.getElementById('avatarDisplay').innerHTML = ''; document.getElementById('avatarDisplay').appendChild(img);
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+</script>
+{% endblock %}

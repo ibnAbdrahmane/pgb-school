@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Espace Professeur — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-chalkboard-user"></i> Espace Professeur{% endblock %}
+{% block content %}
+{% if prof %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-book-open"></i></div>
+        <div class="stat-info"><div class="value">{{ cours_list|length }}</div><div class="label">Mes cours</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div>
+        <div class="stat-info">
+            <div class="value">{{ total_eleves }}</div>
+            <div class="label">Élèves total</div>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+    <div class="card">
+        <h3 style="font-size:.95rem;margin-bottom:1rem"><i class="fas fa-book"></i> Mes cours</h3>
+        {% for c in cours_list %}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border)">
+            <div>
+                <div style="font-weight:600;font-size:.85rem">{{ c.nom }}</div>
+                <div style="font-size:.72rem;color:var(--text-secondary)">{{ c.classe.nom if c.classe else 'N/A' }} — coeff. {{ c.coefficient }}</div>
+            </div>
+            <a href="{{ url_for('prof.notes', cours_id=c.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-pen"></i> Notes</a>
+        </div>
+        {% else %}
+        <p style="color:var(--text-secondary);font-size:.85rem">Aucun cours assigné.</p>
+        {% endfor %}
+    </div>
+    <div class="card">
+        <h3 style="font-size:.95rem;margin-bottom:1rem">Accès rapides</h3>
+        <div style="display:flex;flex-direction:column;gap:.7rem">
+            <a href="{{ url_for('prof.notes') }}" class="btn btn-secondary"><i class="fas fa-pen-ruler"></i> Saisir des notes</a>
+            <a href="{{ url_for('prof.presences') }}" class="btn btn-secondary"><i class="fas fa-clipboard-check"></i> Pointer les présences</a>
+            <a href="{{ url_for('chat.index') }}" class="btn btn-secondary"><i class="fas fa-comments"></i> Chat</a>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning"><i class="fas fa-triangle-exclamation"></i> Profil professeur introuvable.</div>
+{% endif %}
+{% endblock %}

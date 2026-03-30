@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Ajouter un prof — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-chalkboard-user"></i> Ajouter un professeur{% endblock %}
+{% block content %}
+<div style="max-width:700px">
+<div class="card">
+    <form method="POST">
+        <input type="hidden" name="photo_data" id="photo_data">
+        <div class="form-group">
+            <label class="form-label">Photo</label>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="startCamera()"><i class="fas fa-camera"></i> Caméra</button>
+                <button type="button" class="btn btn-primary btn-sm" id="captureBtn" onclick="capturePhoto()" style="display:none"><i class="fas fa-circle"></i> Capturer</button>
+                <label class="btn btn-secondary btn-sm" style="cursor:pointer"><i class="fas fa-upload"></i> Importer <input type="file" accept="image/*" onchange="loadFile(this)" style="display:none"></label>
+            </div>
+            <img id="photoPreview" class="photo-preview" src="#" alt="" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;margin-top:.5rem">
+            <video id="video" style="display:none;width:100%;max-width:250px;border-radius:8px;margin-top:.5rem" autoplay></video>
+            <canvas id="canvas" style="display:none"></canvas>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Prénom *</label><input type="text" name="first_name" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Nom *</label><input type="text" name="last_name" class="form-control" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Nom d'utilisateur *</label><input type="text" name="username" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Email *</label><input type="email" name="email" class="form-control" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">Spécialité</label><input type="text" name="specialite" class="form-control" placeholder="Mathématiques"></div>
+            <div class="form-group"><label class="form-label">Téléphone</label><input type="tel" name="telephone" class="form-control"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Mot de passe (défaut: pgb1234)</label><input type="password" name="password" class="form-control" placeholder="pgb1234"></div>
+        <div style="display:flex;gap:.8rem;margin-top:1rem">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
+            <a href="{{ url_for('scolarite.profs') }}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+</div>
+<script>
+let stream = null;
+async function startCamera() {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const v = document.getElementById('video'); v.srcObject = stream; v.style.display = 'block';
+    document.getElementById('captureBtn').style.display = 'inline-flex';
+}
+function capturePhoto() {
+    const v = document.getElementById('video'), c = document.getElementById('canvas');
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d').drawImage(v,0,0);
+    const d = c.toDataURL('image/jpeg',0.8);
+    document.getElementById('photo_data').value = d;
+    const p = document.getElementById('photoPreview'); p.src = d; p.style.display = 'block';
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+    v.style.display='none'; document.getElementById('captureBtn').style.display='none';
+}
+function loadFile(input){
+    const r = new FileReader();
+    r.onload = e => { document.getElementById('photo_data').value = e.target.result; const p=document.getElementById('photoPreview');p.src=e.target.result;p.style.display='block'; };
+    r.readAsDataURL(input.files[0]);
+}
+</script>
+{% endblock %}

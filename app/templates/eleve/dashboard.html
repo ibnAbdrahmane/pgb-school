@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Espace Élève — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-user-graduate"></i> Mon espace{% endblock %}
+{% block content %}
+{% if show_alert %}
+<div class="alert alert-warning" style="margin-bottom:1.5rem">
+    <i class="fas fa-triangle-exclamation"></i> <strong>Alerte absences</strong><br>
+    Vous avez <strong>{{ absences }}</strong> absence(s) sur les 30 derniers jours. Contactez vos professeurs.
+</div>
+{% endif %}
+<div style="display:grid;grid-template-columns:1fr 2fr;gap:1.5rem;margin-bottom:1.5rem">
+    <div class="card" style="text-align:center">
+        <div style="width:80px;height:80px;border-radius:50%;margin:0 auto 1rem;overflow:hidden;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:white">
+            {% if eleve.photo %}<img src="/uploads/{{ eleve.photo }}" alt="" style="width:100%;height:100%;object-fit:cover">
+            {% else %}{{ (eleve.user.first_name or 'E')[0] }}{% endif %}
+        </div>
+        <h3 style="font-size:1rem">{{ eleve.user.full_name() }}</h3>
+        <p style="color:var(--text-secondary);font-size:.8rem;margin:.3rem 0">{{ eleve.matricule }}</p>
+        <span class="badge badge-warning">{{ eleve.classe.nom if eleve.classe else 'Classe non définie' }}</span>
+        <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">
+            <a href="{{ url_for('eleve.carte') }}" class="btn btn-secondary btn-sm"><i class="fas fa-id-card"></i> Ma carte</a>
+            <a href="{{ url_for('eleve.bulletins') }}" class="btn btn-secondary btn-sm"><i class="fas fa-file-pdf"></i> Mes bulletins</a>
+        </div>
+    </div>
+
+    <div>
+        <div class="card" style="margin-bottom:1rem">
+            <h3 style="font-size:.9rem;margin-bottom:.8rem"><i class="fas fa-star"></i> Dernières notes</h3>
+            {% if recent_notes %}
+            {% for note in recent_notes %}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border)">
+                <div>
+                    <div style="font-size:.85rem;font-weight:600">{{ note.cours.nom }}</div>
+                    <div style="font-size:.72rem;color:var(--text-secondary)">T{{ note.trimestre }} — {{ note.date_ajout.strftime('%d/%m/%Y') }}</div>
+                </div>
+                <span style="font-size:1.2rem;font-weight:800;{% if note.valeur >= 14 %}color:var(--success){% elif note.valeur >= 10 %}color:var(--warning){% else %}color:var(--danger){% endif %}">
+                    {{ note.valeur }}/20
+                </span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p style="color:var(--text-secondary);font-size:.85rem">Aucune note pour l'instant.</p>
+            {% endif %}
+        </div>
+        <div class="card">
+            <h3 style="font-size:.9rem;margin-bottom:.8rem"><i class="fas fa-book-open"></i> Mes cours</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+                {% for c in cours_list %}
+                <span class="badge badge-info" style="font-size:.78rem">{{ c.nom }}</span>
+                {% else %}
+                <span style="color:var(--text-secondary);font-size:.85rem">Aucun cours.</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

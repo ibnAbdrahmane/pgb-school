@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Chat en direct — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-comments"></i> Chat en direct{% endblock %}
+{% block extra_css %}
+<style>
+.chat-container { display:flex; flex-direction:column; height:calc(100vh - 160px); }
+.messages-area { flex:1; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:.6rem; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius) var(--radius) 0 0; }
+.message { display:flex; gap:.7rem; animation:fadeIn .2s ease; max-width:80%; }
+.message.own { flex-direction:row-reverse; align-self:flex-end; }
+.message-avatar { width:34px; height:34px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--accent),#7c3aed); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:white; overflow:hidden; }
+.message-avatar img { width:100%; height:100%; object-fit:cover; }
+.message-body { max-width:100%; }
+.message-meta { font-size:.65rem; color:var(--text-muted); margin-bottom:.2rem; display:flex; gap:.5rem; align-items:center; }
+.message.own .message-meta { justify-content:flex-end; }
+.role-chip { font-size:.6rem; padding:.1rem .4rem; border-radius:10px; font-weight:700; background:var(--accent-glow); color:var(--accent-light); }
+.role-chip.admin { background:rgba(139,92,246,.15); color:#a78bfa; }
+.role-chip.prof { background:rgba(16,185,129,.15); color:#34d399; }
+.role-chip.eleve { background:rgba(245,158,11,.15); color:#fcd34d; }
+.role-chip.scolarite { background:rgba(6,182,212,.15); color:#67e8f9; }
+.message-text { background:var(--bg-secondary); border:1px solid var(--border); padding:.6rem .9rem; border-radius:0 12px 12px 12px; font-size:.85rem; line-height:1.4; word-break:break-word; }
+.message.own .message-text { background:linear-gradient(135deg,var(--accent),#4f46e5); border:none; color:white; border-radius:12px 0 12px 12px; }
+.chat-input-area { background:var(--bg-card); border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius) var(--radius); padding:1rem; display:flex; gap:.7rem; }
+.chat-input { flex:1; padding:.65rem 1rem; background:var(--bg-secondary); border:1px solid var(--border); border-radius:20px; color:var(--text-primary); font-size:.9rem; }
+.chat-input:focus { outline:none; border-color:var(--accent); }
+.btn-send { width:40px; height:40px; border-radius:50%; background:var(--accent); border:none; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .2s; }
+.btn-send:hover { background:var(--accent-light); transform:scale(1.05); }
+.system-msg { text-align:center; font-size:.72rem; color:var(--text-muted); padding:.3rem; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+</style>
+{% endblock %}
+{% block content %}
+<div class="chat-container">
+    <div class="messages-area" id="messagesArea">
+        <div class="system-msg">💬 Début du chat — Bienvenue sur PGB Chat</div>
+        {% for msg in messages %}
+        <div class="message {% if msg.user_id == current_user.id %}own{% endif %}" id="msg-{{ msg.id }}">
+            <div class="message-avatar">
+                {% if msg.user.photo %}<img src="/uploads/{{ msg.user.photo }}" alt="">
+                {% else %}{{ (msg.user.first_name or 'U')[0] }}{% endif %}
+            </div>
+            <div class="message-body">
+                <div class="message-meta">
+                    <strong>{{ msg.user.full_name() }}</strong>
+                    <span class="role-chip {{ msg.user.role }}">{{ msg.user.role }}</span>
+                    <span>{{ msg.timestamp.strftime('%H:%M') }}</span>
+                </div>
+                <div class="message-text">{{ msg.message }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="messageInput" class="chat-input" placeholder="Écrire un message..." maxlength="500" autocomplete="off">
+        <button class="btn-send" id="sendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket = io();
+const currentUserId = {{ current_user.id }};
+const messagesArea = document.getElementById('messagesArea');
+
+function scrollBottom() { messagesArea.scrollTop = messagesArea.scrollHeight; }
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    if (!text) return;
+    socket.emit('send_message', { message: text });
+    input.value = '';
+    input.focus();
+}
+
+document.getElementById('messageInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+socket.on('new_message', data => {
+    const isOwn = data.user_id === currentUserId;
+    const div = document.createElement('div');
+    div.className = `message ${isOwn ? 'own' : ''}`;
+    div.innerHTML = `
+        <div class="message-avatar">
+            ${data.avatar ? `<img src="/uploads/${data.avatar}" alt="">` : data.user[0]}
+        </div>
+        <div class="message-body">
+            <div class="message-meta">
+                <strong>${data.user}</strong>
+                <span class="role-chip ${data.role}">${data.role}</span>
+                <span>${data.time}</span>
+            </div>
+            <div class="message-text">${escapeHtml(data.message)}</div>
+        </div>`;
+    messagesArea.appendChild(div);
+    scrollBottom();
+});
+
+socket.on('user_joined', data => {
+    const div = document.createElement('div');
+    div.className = 'system-msg';
+    div.textContent = `👋 ${data.user} a rejoint le chat`;
+    messagesArea.appendChild(div);
+    scrollBottom();
+});
+
+function escapeHtml(text) {
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+scrollBottom();
+</script>
+{% endblock %}

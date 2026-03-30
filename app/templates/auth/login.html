@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion — École PGB</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root { --accent: #2563eb; --bg: #0d1b2a; --bg2: #1b2838; --border: #2d3f55; --text: #e8f0fe; --text2: #94a3b8; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        .login-wrapper { display:flex; width:900px; max-width:95vw; min-height:500px; background:var(--bg2); border:1px solid var(--border); border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+        .login-left { flex:1; background:linear-gradient(135deg,#0d1b2a,#1e3a5f); padding:3rem; display:flex; flex-direction:column; justify-content:center; position:relative; overflow:hidden; }
+        .login-left::before { content:''; position:absolute; width:300px; height:300px; border-radius:50%; background:rgba(37,99,235,.1); top:-80px; right:-80px; }
+        .login-left::after { content:''; position:absolute; width:200px; height:200px; border-radius:50%; background:rgba(124,58,237,.1); bottom:-60px; left:-60px; }
+        .brand { position:relative; z-index:1; }
+        .brand-icon { width:64px;height:64px; background:linear-gradient(135deg,var(--accent),#7c3aed); border-radius:16px; display:flex; align-items:center;justify-content:center; font-size:2rem; font-weight:900; color:white; margin-bottom:1.5rem; }
+        .brand h1 { font-size:2rem; font-weight:800; }
+        .brand p { color:var(--text2); margin-top:.5rem; font-size:.9rem; line-height:1.6; }
+        .features { margin-top:2rem; display:flex; flex-direction:column; gap:.8rem; }
+        .feature { display:flex; align-items:center; gap:.7rem; color:var(--text2); font-size:.85rem; }
+        .feature i { color:var(--accent); width:18px; }
+        .login-right { flex:1; padding:3rem; display:flex; flex-direction:column; justify-content:center; }
+        h2 { font-size:1.5rem; font-weight:700; margin-bottom:.4rem; }
+        .subtitle { color:var(--text2); font-size:.85rem; margin-bottom:2rem; }
+        .form-group { margin-bottom:1.2rem; }
+        label { display:block; font-size:.82rem; font-weight:600; color:var(--text2); margin-bottom:.4rem; }
+        input {
+            width:100%; padding:.7rem 1rem;
+            background:#0d1b2a; border:1px solid var(--border);
+            border-radius:10px; color:var(--text); font-size:.9rem;
+            transition:border-color .2s, box-shadow .2s;
+        }
+        input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.2); }
+        .btn-login {
+            width:100%; padding:.75rem; background:var(--accent); color:white;
+            border:none; border-radius:10px; font-size:.95rem; font-weight:700;
+            cursor:pointer; transition:all .2s; margin-top:1rem;
+        }
+        .btn-login:hover { background:#3b82f6; box-shadow:0 4px 15px rgba(37,99,235,.4); transform:translateY(-1px); }
+        .alert { padding:.7rem 1rem; border-radius:8px; font-size:.83rem; margin-bottom:1rem; }
+        .alert-danger { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); color:#f87171; }
+        .alert-success { background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.3); color:#34d399; }
+        .demo-info { margin-top:1.5rem; background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.2); border-radius:10px; padding:1rem; font-size:.78rem; color:var(--text2); }
+        .demo-info strong { color:var(--text); }
+        .demo-row { display:flex; justify-content:space-between; margin-top:.3rem; }
+    </style>
+</head>
+<body>
+<div class="login-wrapper">
+    <div class="login-left">
+        <div class="brand">
+            <div class="brand-icon">P</div>
+            <h1>École PGB</h1>
+            <p>Plateforme de gestion scolaire moderne — Sénégal</p>
+            <div class="features">
+                <div class="feature"><i class="fas fa-graduation-cap"></i> Gestion des élèves & notes</div>
+                <div class="feature"><i class="fas fa-file-pdf"></i> Bulletins & cartes auto</div>
+                <div class="feature"><i class="fas fa-comments"></i> Chat en temps réel</div>
+                <div class="feature"><i class="fas fa-shield-halved"></i> Accès rôle par rôle</div>
+            </div>
+        </div>
+    </div>
+    <div class="login-right">
+        <h2>Connexion</h2>
+        <p class="subtitle">Connectez-vous à votre espace personnel</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
+            <label style="flex:1;display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer">
+                <input type="radio" name="is_carte" value="0" checked style="margin:0">
+                Nom utilisateur
+            </label>
+            <label style="flex:1;display:flex;align-items:center;gap:.5rem;font-size:.85rem;cursor:pointer">
+                <input type="radio" name="is_carte" value="1" style="margin:0">
+                Numéro carte
+            </label>
+        </div>
+        <form method="POST">
+            <div class="form-group">
+                <label><i class="fas fa-id-card-alt"></i> Numéro de carte / Username</label>
+                <input type="text" name="username" placeholder="CART0001 or admin" required autofocus>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Mot de passe <span style="color:var(--text2);font-size:.8rem">(1234 pour carte)</span></label>
+                <input type="password" name="password" placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
+        </form>
+
+
+</div>
+</body>
+</html>

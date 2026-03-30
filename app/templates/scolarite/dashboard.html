@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Service Scolarité — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-school"></i> Service Scolarité{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div>
+        <div class="stat-info"><div class="value">{{ stats.eleves }}</div><div class="label">Élèves inscrits</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-chalkboard-user"></i></div>
+        <div class="stat-info"><div class="value">{{ stats.profs }}</div><div class="label">Professeurs</div></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon yellow"><i class="fas fa-chalkboard"></i></div>
+        <div class="stat-info"><div class="value">{{ stats.classes }}</div><div class="label">Classes</div></div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+    <div class="card">
+        <h3 style="font-size:.95rem;margin-bottom:1rem">Gestion élèves</h3>
+        <div style="display:flex;flex-direction:column;gap:.7rem">
+            <a href="{{ url_for('scolarite.add_eleve') }}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Inscrire un élève</a>
+            <a href="{{ url_for('scolarite.eleves') }}" class="btn btn-secondary"><i class="fas fa-list"></i> Liste des élèves</a>
+            <a href="{{ url_for('scolarite.cartes') }}" class="btn btn-success"><i class="fas fa-id-card"></i> Cartes élèves</a>
+        </div>
+    </div>
+    <div class="card">
+        <h3 style="font-size:.95rem;margin-bottom:1rem">Gestion profs & cours</h3>
+        <div style="display:flex;flex-direction:column;gap:.7rem">
+            <a href="{{ url_for('scolarite.add_prof') }}" class="btn btn-primary"><i class="fas fa-chalkboard-user"></i> Ajouter un prof</a>
+            <a href="{{ url_for('scolarite.cours') }}" class="btn btn-secondary"><i class="fas fa-book"></i> Voir les cours</a>
+        <a href="{{ url_for('scolarite.notes') }}" class="btn btn-secondary"><i class="fas fa-chart-bar"></i> Voir les notes</a>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="grid-column:1 / -1">
+    <h3 style="font-size:.95rem;margin-bottom:1rem"><i class="fas fa-user-graduate"></i> Élèves récents</h3>
+    <div style="display:flex;flex-direction:column;gap:.6rem;max-height:400px;overflow-y:auto">
+        {% for e in recent_eleves %}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-secondary)">
+            <div>
+                <div style="font-weight:600;font-size:.85rem">{{ e.user.full_name() }}</div>
+                <div style="font-size:.75rem;color:var(--text-secondary)">{{ e.matricule }} — {{ e.classe.nom if e.classe else 'Sans classe' }}</div>
+            </div>
+            <div style="display:flex;gap:.3rem">
+                <a href="{{ url_for('scolarite.eleves') }}#eleve-{{ e.id }}" class="btn btn-sm btn-secondary">Voir</a>
+            </div>
+        </div>
+        {% else %}
+        <p style="color:var(--text-secondary);text-align:center;padding:2rem;font-style:italic">Aucun élève récent inscrit.</p>
+        {% endfor %}
+    </div>
+    <div style="margin-top:1rem;text-align:center">
+        <a href="{{ url_for('scolarite.eleves') }}" class="btn btn-primary btn-sm"><i class="fas fa-list"></i> Voir tous les élèves</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Présences — PGB{% endblock %}
+{% block page_title %}<i class="fas fa-clipboard-check"></i> Appel / Présences{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:1.5rem">
+    <form method="GET" style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end">
+        <div class="form-group" style="margin:0;min-width:200px">
+            <label class="form-label">Cours</label>
+            <select name="cours_id" class="form-control" onchange="this.form.submit()">
+                <option value="">-- Sélectionner --</option>
+                {% for c in cours_list %}
+                <option value="{{ c.id }}" {% if selected_cours_id == c.id %}selected{% endif %}>{{ c.nom }} — {{ c.classe.nom if c.classe else 'N/A' }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" style="margin:0">
+            <label class="form-label">Date</label>
+            <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+        </div>
+        <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-search"></i></button>
+    </form>
+</div>
+
+{% if eleves_presences %}
+<form method="POST" action="{{ url_for('prof.save_presences') }}">
+    <input type="hidden" name="cours_id" value="{{ selected_cours_id }}">
+    <input type="hidden" name="date" value="{{ selected_date }}">
+
+    <div class="card" style="margin-bottom:1rem;display:flex;gap:1rem;flex-wrap:wrap">
+        <div>
+            <span style="font-size:.85rem;color:var(--text-secondary)">Date :</span>
+            <strong style="font-size:.9rem"> {{ selected_date }}</strong>
+        </div>
+        <div>
+            <span style="font-size:.85rem;color:var(--text-secondary)">Présents :</span>
+            <strong style="font-size:.9rem;color:var(--success)" id="presentCount">0</strong>
+            / {{ eleves_presences|length }}
+        </div>
+    </div>
+
+    <div style="margin-bottom:1rem;display:flex;gap:.5rem">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAll(true)"><i class="fas fa-check-double"></i> Tous présents</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAll(false)"><i class="fas fa-times"></i> Tous absents</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Élève</th><th>Matricule</th><th style="text-align:center">Présent</th></tr></thead>
+            <tbody>
+                {% for item in eleves_presences %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:.6rem">
+                            <div class="avatar" style="width:30px;height:30px;font-size:.72rem">
+                                {% if item.eleve.photo %}<img src="/uploads/{{ item.eleve.photo }}" alt="">
+                                {% else %}{{ (item.eleve.user.first_name or 'E')[0] }}{% endif %}
+                            </div>
+                            {{ item.eleve.user.full_name() }}
+                        </div>
+                    </td>
+                    <td><code style="font-size:.75rem">{{ item.eleve.matricule }}</code></td>
+                    <td style="text-align:center">
+                        <label style="cursor:pointer;display:inline-flex;align-items:center;gap:.4rem">
+                            <input type="checkbox" name="present" value="{{ item.eleve.id }}"
+                                   class="presence-check"
+                                   {% if item.presence is none or item.presence.present %}checked{% endif %}
+                                   onchange="updateCount()"
+                                   style="width:18px;height:18px;accent-color:var(--accent)">
+                        </label>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top:1rem">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer l'appel</button>
+    </div>
+</form>
+{% elif selected_cours_id %}
+<div class="alert alert-info"><i class="fas fa-info-circle"></i> Aucun élève dans cette classe.</div>
+{% else %}
+<div class="card" style="text-align:center;padding:3rem;color:var(--text-secondary)">
+    <i class="fas fa-clipboard-check" style="font-size:2rem;margin-bottom:1rem;opacity:.4"></i>
+    <p>Sélectionnez un cours pour pointer les présences.</p>
+</div>
+{% endif %}
+<script>
+function updateCount() {
+    const checks = document.querySelectorAll('.presence-check:checked');
+    document.getElementById('presentCount').textContent = checks.length;
+}
+function toggleAll(val) {
+    document.querySelectorAll('.presence-check').forEach(c => c.checked = val);
+    updateCount();
+}
+document.addEventListener('DOMContentLoaded', updateCount);
+</script>
+{% endblock %}
