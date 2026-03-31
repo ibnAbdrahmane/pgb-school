@@ -8,9 +8,21 @@ except ImportError:
     pass
 
 from app import create_app, socketio
-from flask import send_from_directory
+from flask import send_from_directory, jsonify
 
 app = create_app()
+
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint pour Docker/Cloud"""
+    try:
+        from app import db
+        # Vérifier que la DB est accessible
+        db.session.execute('SELECT 1')
+        return jsonify({"status": "healthy"}), 200
+    except Exception as e:
+        return jsonify({"status": "unhealthy", "error": str(e)}), 503
 
 
 @app.route('/uploads/<path:filename>')

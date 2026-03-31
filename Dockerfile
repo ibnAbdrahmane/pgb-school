@@ -1,11 +1,17 @@
 FROM ubuntu:22.04
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=UTC
+# Variable de build pour optimiser le cache Docker
+ARG BUILDKIT_INLINE_CACHE=1
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=UTC \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
+# Installer les dépendances système
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.11 \
     python3.11-dev \
     python3-pip \
@@ -20,18 +26,32 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     shared-mime-info \
     fonts-liberation \
+    curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN python3.11 -m pip install --no-cache-dir --upgrade pip
+# Upgrader pip
+RUN python3.11 -m pip install --no-cache-dir --upgrade pip setuptools wheel
 
-COPY requirements-docker.txt requirements.txt
-RUN python3.11 -m pip install --no-cache-dir -r requirements.txt
+# Copier les requirements AVANT le code (meilleur cache Docker)
+COPY requirements-docker.txt .
+RUN python3.11 -m pip install --no-cache-dir -r requirements-docker.txt
 
+# Copier le code applicatif
 COPY . .
 
-RUN mkdir -p /app/uploads/photos /app/uploads/bulletins /app/uploads/cartes
+# Créer les répertoires d'uploads
+RUN mkdir -p /app/uploads/photos /app/uploads/bulletins /app/uploads/cartes && \
+    chmod -R 755 /app/uploads
+
+# Rendre le script d'entrée exécutable
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "--bind", "0.0.0.0:5000", "run:app"]
+CMD ["/app/entrypoint.sh"]
